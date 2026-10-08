@@ -3,7 +3,7 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -513,7 +513,12 @@ app.use((error, _req, res, _next) => {
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'API route not found.' });
-  const frontend = path.resolve(process.cwd(), 'public/index.html');
+  const publicDirectory = path.resolve(process.cwd(), 'public');
+  const requestedFile = path.resolve(publicDirectory, `.${req.path}`);
+  if (requestedFile.startsWith(`${publicDirectory}${path.sep}`) && existsSync(requestedFile) && statSync(requestedFile).isFile()) {
+    return res.sendFile(requestedFile);
+  }
+  const frontend = path.join(publicDirectory, 'index.html');
   if (!existsSync(frontend)) return next();
   res.sendFile(frontend);
 });
