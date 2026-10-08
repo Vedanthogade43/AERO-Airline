@@ -3,7 +3,7 @@ node_modules/
 database/ca.pem
 build/
 dist/
-public/
+/public/
 coverage/
 .DS_Store
 *.log
